@@ -43,4 +43,8 @@
     <string name="name">Name</string>
     <string name="frac_digits">Frac Digits</string>
     <string name="_1_n">1:n</string>
+    <string name="repeat">Repeat</string>
+    <string name="interval">Interval</string>
+    <string name="reverse">Reverse</string>
+    <string name="end_date">End Date</string>
 </resources>

@@ -37,18 +37,19 @@ public class Adapter_Single extends RecyclerView.Adapter<Adapter_Single.SingleTr
     private OrderedRealmCollection<mTra> mTraList;
     Long[] longs;
     private Long[] tempLongs;
-    private String accstr;
+    //private String accstr;
+    private int accOrder;
     private Realm realminstance;
 
-    Adapter_Single(Context context, String str, Realm instance) {
+    Adapter_Single(Context context, int order, Realm instance) {
         this.mContext = context;
         realminstance = instance;
-        accstr = str;
+        accOrder = order;
         //mCurrency currency = realminstance.where(mAccount.class).equalTo("aname", accstr).findFirst().getCurrency();
-        mTraList = realminstance.where(mTra.class).equalTo("accU.aname", accstr).or().equalTo("accB.aname", accstr).findAll().sort("mDate", Sort.ASCENDING);
+        mTraList = realminstance.where(mTra.class).equalTo("accU.order", order).or().equalTo("accB.order", order).findAll().sort("mDate", Sort.ASCENDING);
         if (mTraList.size() >= 512) {
             tempLongs = new Long[32];
-            tempLongs[0] = realminstance.where(mTra.class).equalTo("accU.aname", accstr).findAllAsync().sum("uAm").longValue() + realminstance.where(mTra.class).equalTo("accB.aname", accstr).findAllAsync().sum("bAm").longValue();
+            tempLongs[0] = realminstance.where(mTra.class).equalTo("accU.order", order).findAllAsync().sum("uAm").longValue() + realminstance.where(mTra.class).equalTo("accB.order", order).findAllAsync().sum("bAm").longValue();
             for (int i = 0; i < 31; i++) {
                 tempLongs[i + 1] = tempLongs[i] - getAmount(mTraList.size() - i - 1);
             }
@@ -71,7 +72,7 @@ public class Adapter_Single extends RecyclerView.Adapter<Adapter_Single.SingleTr
         double d_Double;
         double o_double;
         mCurrency currency;
-        if (mTraList.get(position).getAccU().getAname().equals(accstr)) {
+        if (mTraList.get(position).getAccU().getOrder() == accOrder) {
             if (mTraList.get(position).getAccU().getCurrency() != null)
                 currency = mTraList.get(position).getAccU().getCurrency();
             else
@@ -127,7 +128,7 @@ public class Adapter_Single extends RecyclerView.Adapter<Adapter_Single.SingleTr
     }
 
     private Long getAmount(int pos) {
-        if (mTraList.get(pos).getAccU().getAname().equals(accstr)) {
+        if (mTraList.get(pos).getAccU().getOrder() == accOrder) {
             return mTraList.get(pos).getuAm();
         } else {
             return mTraList.get(pos).getbAm();

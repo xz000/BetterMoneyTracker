@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="loop_type">
+        <item>无</item>
+        <item>日</item>
+        <item>周</item>
+        <item>月</item>
+        <item>年</item>
+    </string-array>
+</resources>

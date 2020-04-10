@@ -123,4 +123,14 @@ public class mTra extends RealmObject {
         else
             return accU.getCurrency();
     }
+
+    public void setPlanTask(mPlanTask planTask) {
+        this.planTask = planTask;
+        this.isInTask = true;
+    }
+
+    public void removePlanTask() {
+        this.planTask = null;
+        this.isInTask = false;
+    }
 }

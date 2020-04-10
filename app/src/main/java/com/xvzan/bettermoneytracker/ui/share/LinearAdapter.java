@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.xvzan.bettermoneytracker.R;
 import com.xvzan.bettermoneytracker.dbsettings.mAccount;
+import com.xvzan.bettermoneytracker.dbsettings.mPlanTask;
 import com.xvzan.bettermoneytracker.dbsettings.mTra;
 import com.xvzan.bettermoneytracker.ui.addaccount.EditAccountDialogFragment;
 
@@ -116,7 +117,7 @@ public class LinearAdapter extends RecyclerView.Adapter<LinearAdapter.LinearView
                 @Override
                 public void onClick(View v) {
                     try (Realm realm = Realm.getDefaultInstance()) {
-                        if (realm.where(mTra.class).equalTo("accU.aname", tv_AccountName.getText().toString()).or().equalTo("accB.aname", tv_AccountName.getText().toString()).findAll().size() > 0) {
+                        if (realm.where(mTra.class).equalTo("accU.aname", tv_AccountName.getText().toString()).or().equalTo("accB.aname", tv_AccountName.getText().toString()).findAll().size() > 0 || realm.where(mPlanTask.class).equalTo("accU.aname", tv_AccountName.getText().toString()).or().equalTo("accB.aname", tv_AccountName.getText().toString()).findAll().size() > 0) {
                             Toast.makeText(mContext, "Cannot delete Account which is in use", Toast.LENGTH_SHORT).show();
                             //Cannot delete Account which is in use
                         } else {

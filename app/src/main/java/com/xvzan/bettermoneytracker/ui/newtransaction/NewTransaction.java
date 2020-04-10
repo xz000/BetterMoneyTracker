@@ -206,8 +206,9 @@ public class NewTransaction extends Fragment {
         dt = root.findViewById(R.id.bt_nt_Date);
         tm = root.findViewById(R.id.bt_nt_Time);
         note = root.findViewById(R.id.et_nt_note);
-        LinearLayout btll = root.findViewById(R.id.ll_nt_bottomll);
-        btll.removeViewAt(0);
+        root.findViewById(R.id.ib_nt_delete).setVisibility(View.INVISIBLE);
+        //LinearLayout btll = root.findViewById(R.id.ll_nt_bottomll);
+        //btll.removeViewAt(0);
         Button ntbt = root.findViewById(R.id.bt_nt);
         ntbt.setOnClickListener(new View.OnClickListener() {
             @Override

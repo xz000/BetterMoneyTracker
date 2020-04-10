@@ -10,18 +10,19 @@ import io.realm.Sort;
 
 public class TotalArray implements Runnable {
 
-    private String accstr;
-    //private Realm realmInstance;
+    //private String accstr;
+    private int accOrder;
+    private Realm realmInstance;
     private Thread mCurrentThread;
     //private Adapter_Single adapter_single;
     private int size;
 
-    TotalArray(String str, int i) {
-        accstr = str;
+    TotalArray(int order, int i) {
+        accOrder = order;
         size = i;
     }
 
-    public Thread getCurrentThread() {
+    private Thread getCurrentThread() {
         return mCurrentThread;
     }
 
@@ -29,7 +30,7 @@ public class TotalArray implements Runnable {
      * Sets the identifier for the current Thread. This must be a synchronized operation; see the
      * notes for getCurrentThread()
      */
-    public void setCurrentThread(Thread thread) {
+    private void setCurrentThread(Thread thread) {
         mCurrentThread = thread;
     }
 
@@ -43,7 +44,8 @@ public class TotalArray implements Runnable {
                 throw new InterruptedException();
             }
             try (Realm realm = Realm.getDefaultInstance()) {
-                OrderedRealmCollection<mTra> mTraList = realm.where(mTra.class).equalTo("accU.aname", accstr).or().equalTo("accB.aname", accstr).findAll().sort("mDate", Sort.ASCENDING);
+                //accOrder = realm.where(mAccount.class).equalTo("aname", accstr).findFirst().getOrder();
+                OrderedRealmCollection<mTra> mTraList = realm.where(mTra.class).equalTo("accU.order", accOrder).or().equalTo("accB.order", accOrder).findAll().sort("mDate", Sort.ASCENDING);
                 if (Thread.interrupted()) {
                     throw new InterruptedException();
                 }
@@ -54,7 +56,7 @@ public class TotalArray implements Runnable {
                     if (Thread.interrupted()) {
                         throw new InterruptedException();
                     }
-                    if (mTraList.get(a).getAccU().getAname().equals(accstr)) {
+                    if (mTraList.get(a).getAccU().getOrder() == accOrder) {
                         i += mTraList.get(a).getuAm();
                     } else {
                         i += mTraList.get(a).getbAm();
