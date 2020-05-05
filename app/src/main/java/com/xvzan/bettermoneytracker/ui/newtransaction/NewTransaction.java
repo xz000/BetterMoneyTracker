@@ -24,6 +24,7 @@ import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
@@ -34,6 +35,7 @@ import com.xvzan.bettermoneytracker.R;
 import com.xvzan.bettermoneytracker.dbsettings.mAccount;
 import com.xvzan.bettermoneytracker.dbsettings.mTra;
 import com.xvzan.bettermoneytracker.ui.home.HomeFragment;
+import com.xvzan.bettermoneytracker.ui.plantask.PlanTaskDialogFragment;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -57,6 +59,7 @@ public class NewTransaction extends Fragment {
     private EditText note;
     private Button dt;
     private Button tm;
+    private ImageButton repeatButton;
     private Calendar cld;
     private List<Integer> typeList;
     private Realm realm;
@@ -74,6 +77,7 @@ public class NewTransaction extends Fragment {
         aB = root.findViewById(R.id.spn_nt_aB);
         tU = root.findViewById(R.id.tv_nt_aU);
         tB = root.findViewById(R.id.tv_nt_aB);
+        repeatButton = root.findViewById(R.id.ib_nt_repeat);
         realm = Realm.getDefaultInstance();
         accList = realm.where(mAccount.class).findAll().sort("order", Sort.ASCENDING);
         nameList = new ArrayList<>();
@@ -307,6 +311,13 @@ public class NewTransaction extends Fragment {
                     calculateRatio(uam.getText());
                 }
                 isSwitching = false;
+            }
+        });
+        repeatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PlanTaskDialogFragment planTaskDialogFragment = new PlanTaskDialogFragment();
+                planTaskDialogFragment.show(Objects.requireNonNull(getActivity()).getSupportFragmentManager(), "edit_repeat_dialog");
             }
         });
         return root;

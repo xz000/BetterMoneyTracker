@@ -133,4 +133,8 @@ public class mTra extends RealmObject {
         this.planTask = null;
         this.isInTask = false;
     }
+
+    public boolean hasTask() {
+        return isInTask;
+    }
 }

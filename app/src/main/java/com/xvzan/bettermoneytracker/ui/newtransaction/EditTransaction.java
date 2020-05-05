@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.icu.util.Currency;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -30,12 +29,12 @@ import androidx.navigation.Navigation;
 import com.xvzan.bettermoneytracker.R;
 import com.xvzan.bettermoneytracker.dbsettings.mAccount;
 import com.xvzan.bettermoneytracker.dbsettings.mTra;
+import com.xvzan.bettermoneytracker.ui.plantask.PlanTaskDialogFragment;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import io.realm.Realm;
@@ -54,6 +53,7 @@ public class EditTransaction extends Fragment {
     private EditText note;
     private Button dt;
     private Button tm;
+    private ImageButton repeatButton;
     private Calendar cld;
     private List<Integer> typeList;
     private mTra myTran;
@@ -68,17 +68,22 @@ public class EditTransaction extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View root = inflater.inflate(R.layout.new_transaction_dialog, container, false);
+        boolean isEdit = false;
         realm = Realm.getDefaultInstance();
         realm.beginTransaction();
         myTran = realm.where(mTra.class).equalTo("editMe", true).findFirst();
-        assert myTran != null;
-        myTran.meEdited();
+        if (myTran != null) {
+            myTran.meEdited();
+            isEdit = true;
+        } else
+            root.findViewById(R.id.ib_nt_delete).setVisibility(View.INVISIBLE);
         realm.commitTransaction();
         cld = Calendar.getInstance();
         aU = root.findViewById(R.id.spn_nt_aU);
         aB = root.findViewById(R.id.spn_nt_aB);
         tU = root.findViewById(R.id.tv_nt_aU);
         tB = root.findViewById(R.id.tv_nt_aB);
+        repeatButton = root.findViewById(R.id.ib_nt_repeat);
         nameList = new ArrayList<>();
         nameList.add("");
         typeList = new ArrayList<>();
@@ -180,14 +185,35 @@ public class EditTransaction extends Fragment {
                 }
             }
         });
-        cld.setTime(myTran.getmDate());
-        aU.setSelection(nameList.indexOf(myTran.getAccU().getAname()));
-        aB.setSelection(nameList.indexOf(myTran.getAccB().getAname()));
         dt = root.findViewById(R.id.bt_nt_Date);
         tm = root.findViewById(R.id.bt_nt_Time);
-        bam.setText(Long.toString(myTran.getDeltaB()));
-        uam.setText(Long.toString(myTran.getDeltaU()));
-        setInputFields();
+        note = root.findViewById(R.id.et_nt_note);
+        if (isEdit) {
+            cld.setTime(myTran.getmDate());
+            aU.setSelection(nameList.indexOf(myTran.getAccU().getAname()));
+            aB.setSelection(nameList.indexOf(myTran.getAccB().getAname()));
+            bam.setText(Long.toString(myTran.getDeltaB()));
+            uam.setText(Long.toString(myTran.getDeltaU()));
+            note.setText(myTran.getmNote());
+            //setInputFields();
+        } else {
+            InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            assert imm != null;
+            imm.showSoftInput(root, InputMethodManager.SHOW_IMPLICIT);
+            bam.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View v, boolean hasFocus) {
+                    InputMethodManager im = (InputMethodManager) Objects.requireNonNull(getContext()).getSystemService(Context.INPUT_METHOD_SERVICE);
+                    if (hasFocus) {
+                        assert im != null;
+                        im.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+                    } else {
+                        assert im != null;
+                        im.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    }
+                }
+            });
+        }
         if (isMultiCurrency) calculateRatio(uam.getText());
         dt.setText(DateFormat.getDateInstance().format(cld.getTime()));
         tm.setText(DateFormat.getTimeInstance().format(cld.getTime()));
@@ -224,9 +250,8 @@ public class EditTransaction extends Fragment {
                 }, cld.get(Calendar.HOUR_OF_DAY), cld.get(Calendar.MINUTE), true).show();
             }
         });
-        note = root.findViewById(R.id.et_nt_note);
-        note.setText(myTran.getmNote());
         Button ntbt = root.findViewById(R.id.bt_nt);
+        final boolean finalIsEdit1 = isEdit;
         ntbt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -252,20 +277,31 @@ public class EditTransaction extends Fragment {
                 String tNote = note.getText().toString();
                 mAccount uu = accList.get(aU.getSelectedItemPosition() - 1);
                 mAccount bb = accList.get(aB.getSelectedItemPosition() - 1);
-                realm.beginTransaction();
-                myTran.ubSet(uu, bb, uamint, bamint, cld.getTime());
-                myTran.setmNote(tNote);
+                if (finalIsEdit1) {
+                    realm.beginTransaction();
+                    myTran.ubSet(uu, bb, uamint, bamint, cld.getTime());
+                    myTran.setmNote(tNote);
+                } else {
+                    mTra ts = new mTra();
+                    ts.ubSet(uu, bb, uamint, bamint, cld.getTime());
+                    ts.setmNote(tNote);
+                    realm.beginTransaction();
+                    realm.copyToRealm(ts);
+                }
                 realm.commitTransaction();
                 Navigation.findNavController(root).navigateUp();
             }
         });
         ImageButton bt_Delete = root.findViewById(R.id.ib_nt_delete);
+        final boolean finalIsEdit = isEdit;
         bt_Delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                realm.beginTransaction();
-                myTran.deleteFromRealm();
-                realm.commitTransaction();
+                if (finalIsEdit) {
+                    realm.beginTransaction();
+                    myTran.deleteFromRealm();
+                    realm.commitTransaction();
+                }
                 Navigation.findNavController(root).navigate(R.id.action_nav_edit_tran_to_nav_home);
             }
         });
@@ -300,6 +336,15 @@ public class EditTransaction extends Fragment {
                 isSwitching = false;
             }
         });
+        repeatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PlanTaskDialogFragment planTaskDialogFragment = new PlanTaskDialogFragment();
+                planTaskDialogFragment.show(Objects.requireNonNull(getActivity()).getSupportFragmentManager(), "edit_repeat_dialog");
+            }
+        });
+        if (isEdit && myTran.hasTask())
+            repeatButton.setImageTintList(getContext().getResources().getColorStateList(R.color.repeating, getContext().getTheme()));
         return root;
     }
 

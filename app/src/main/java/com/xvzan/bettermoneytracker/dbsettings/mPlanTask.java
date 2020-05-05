@@ -11,6 +11,7 @@ public class mPlanTask extends RealmObject {
     private long uDelta;
     private long bDelta;
     private Date nextTime;
+    private Date lastTime;
     private mTra latestTra;
     private Date endTime;
     private int loopType;//1,2,3,4,Day,Week,Month,Year

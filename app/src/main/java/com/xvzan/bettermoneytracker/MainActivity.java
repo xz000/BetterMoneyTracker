@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements AddAccountDialogF
 
     public void openNewTransactionMenu(View view) {
         //NewTransaction nt = new NewTransaction();
-        navController.navigate(R.id.nav_new_tran);
+        navController.navigate(R.id.nav_edit_tran);
     }
 
     @Override
