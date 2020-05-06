@@ -12,6 +12,7 @@ public class mPlanTask extends RealmObject {
     private long bDelta;
     private Date nextTime;
     private Date lastTime;
+    //private mTra firstTra;
     private mTra latestTra;
     private Date endTime;
     private int loopType;//1,2,3,4,Day,Week,Month,Year
@@ -26,6 +27,16 @@ public class mPlanTask extends RealmObject {
     public void setLatestTra(mTra tra) {
         latestTra = tra;
     }
+
+/*
+    public mTra getFirstTra() {
+        return firstTra;
+    }
+
+    public void setFirstTra(mTra tra) {
+        firstTra = tra;
+    }
+ */
 
     public int getLoopType() {
         return loopType;
@@ -69,5 +80,12 @@ public class mPlanTask extends RealmObject {
 
     public void setNextTime(Date time) {
         nextTime = time;
+    }
+
+    public void setBasic(mAccount aU, mAccount aB, long deltaU, long deltaB) {
+        accU = aU;
+        accB = aB;
+        uDelta = deltaU;
+        bDelta = deltaB;
     }
 }

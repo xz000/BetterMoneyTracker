@@ -313,6 +313,7 @@ public class NewTransaction extends Fragment {
                 isSwitching = false;
             }
         });
+        /*
         repeatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -320,6 +321,7 @@ public class NewTransaction extends Fragment {
                 planTaskDialogFragment.show(Objects.requireNonNull(getActivity()).getSupportFragmentManager(), "edit_repeat_dialog");
             }
         });
+         */
         return root;
     }
 

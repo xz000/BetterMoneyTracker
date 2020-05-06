@@ -129,6 +129,10 @@ public class mTra extends RealmObject {
         this.isInTask = true;
     }
 
+    public mPlanTask getPlanTask() {
+        return planTask;
+    }
+
     public void removePlanTask() {
         this.planTask = null;
         this.isInTask = false;

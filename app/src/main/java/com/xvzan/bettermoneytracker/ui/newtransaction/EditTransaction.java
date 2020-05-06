@@ -1,10 +1,13 @@
 package com.xvzan.bettermoneytracker.ui.newtransaction;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Debug;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -28,12 +31,14 @@ import androidx.navigation.Navigation;
 
 import com.xvzan.bettermoneytracker.R;
 import com.xvzan.bettermoneytracker.dbsettings.mAccount;
+import com.xvzan.bettermoneytracker.dbsettings.mPlanTask;
 import com.xvzan.bettermoneytracker.dbsettings.mTra;
 import com.xvzan.bettermoneytracker.ui.plantask.PlanTaskDialogFragment;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -43,38 +48,66 @@ import io.realm.Sort;
 public class EditTransaction extends Fragment {
 
     private List<String> nameList;
-    private Spinner aU;
-    private Spinner aB;
     private TextView tU;
     private TextView tB;
+    private Spinner aU;
+    private Spinner aB;
     private EditText bam;
     private EditText ratio;
     private EditText uam;
     private EditText note;
+    private int aUBefore;
+    private int aBBefore;
+    private long bamBefore;
+    private long uamBefore;
+    private String noteBefore;
     private Button dt;
     private Button tm;
     private ImageButton repeatButton;
     private Calendar cld;
     private List<Integer> typeList;
     private mTra myTran;
+    private boolean isEdit = false;
     private Realm realm;
     private List<mAccount> accList;
     private long aLong;
     private boolean isMultiCurrency;
     private boolean isSwitching = false;
+    private int loopMode = 0;
+    private boolean MonthReverse = false;
+    private int repeatInt;
+    private Date endDate;
+
+    private int applymode = 0;
+
+    private int modeBefore = 0;
+    private int intervalBefore;
+    private Date endDateBefore;
+    private View root;
 
     @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View root = inflater.inflate(R.layout.new_transaction_dialog, container, false);
-        boolean isEdit = false;
+        root = inflater.inflate(R.layout.new_transaction_dialog, container, false);
+        final EditTransaction etself = this;
+        //isEdit = false;
         realm = Realm.getDefaultInstance();
         realm.beginTransaction();
         myTran = realm.where(mTra.class).equalTo("editMe", true).findFirst();
         if (myTran != null) {
             myTran.meEdited();
             isEdit = true;
+            if (myTran.hasTask()) {
+                modeBefore = myTran.getPlanTask().getLoopType();
+                loopMode = modeBefore;
+                intervalBefore = myTran.getPlanTask().getLoopInterval();
+                repeatInt = intervalBefore;
+                if (myTran.getPlanTask().hasEndTime()) {
+                    endDateBefore = myTran.getPlanTask().getEndTime();
+                    endDate = myTran.getPlanTask().getEndTime();
+                }
+            }
         } else
             root.findViewById(R.id.ib_nt_delete).setVisibility(View.INVISIBLE);
         realm.commitTransaction();
@@ -185,34 +218,50 @@ public class EditTransaction extends Fragment {
                 }
             }
         });
+        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        assert imm != null;
+        imm.showSoftInput(root, InputMethodManager.SHOW_IMPLICIT);
+        bam.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                InputMethodManager im = (InputMethodManager) Objects.requireNonNull(getContext()).getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (hasFocus) {
+                    assert im != null;
+                    im.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
+                } else {
+                    assert im != null;
+                    im.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
         dt = root.findViewById(R.id.bt_nt_Date);
         tm = root.findViewById(R.id.bt_nt_Time);
         note = root.findViewById(R.id.et_nt_note);
         if (isEdit) {
             cld.setTime(myTran.getmDate());
-            aU.setSelection(nameList.indexOf(myTran.getAccU().getAname()));
+            aUBefore = nameList.indexOf(myTran.getAccU().getAname());
+            aU.setSelection(aUBefore);
+            aBBefore = nameList.indexOf(myTran.getAccB().getAname());
             aB.setSelection(nameList.indexOf(myTran.getAccB().getAname()));
-            bam.setText(Long.toString(myTran.getDeltaB()));
-            uam.setText(Long.toString(myTran.getDeltaU()));
-            note.setText(myTran.getmNote());
+            bamBefore = myTran.getDeltaB();
+            bam.setText(Long.toString(bamBefore));
+            uamBefore = myTran.getDeltaU();
+            uam.setText(Long.toString(uamBefore));
+            noteBefore = myTran.getmNote();
+            note.setText(noteBefore);
             //setInputFields();
         } else {
-            InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            assert imm != null;
-            imm.showSoftInput(root, InputMethodManager.SHOW_IMPLICIT);
-            bam.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    InputMethodManager im = (InputMethodManager) Objects.requireNonNull(getContext()).getSystemService(Context.INPUT_METHOD_SERVICE);
-                    if (hasFocus) {
-                        assert im != null;
-                        im.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
-                    } else {
-                        assert im != null;
-                        im.hideSoftInputFromWindow(v.getWindowToken(), 0);
-                    }
-                }
-            });
+            final String accstr = getContext().getSharedPreferences("data", Context.MODE_PRIVATE).getString("nowAccount", "");
+            if (!accstr.equals("") && nameList.contains(accstr)) {
+                int mmm = nameList.indexOf(accstr);
+                if (accList.get(mmm - 1).getBl1())
+                    if (accList.get(mmm - 1).getAcct() == 4)
+                        aB.setSelection(mmm);
+                    else
+                        aU.setSelection(mmm);
+                else
+                    aB.setSelection(mmm);
+            }
         }
         if (isMultiCurrency) calculateRatio(uam.getText());
         dt.setText(DateFormat.getDateInstance().format(cld.getTime()));
@@ -251,7 +300,6 @@ public class EditTransaction extends Fragment {
             }
         });
         Button ntbt = root.findViewById(R.id.bt_nt);
-        final boolean finalIsEdit1 = isEdit;
         ntbt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -275,29 +323,51 @@ public class EditTransaction extends Fragment {
                         uamint = Long.parseLong(uamstr);
                 } else uamint = bamint;
                 String tNote = note.getText().toString();
-                mAccount uu = accList.get(aU.getSelectedItemPosition() - 1);
-                mAccount bb = accList.get(aB.getSelectedItemPosition() - 1);
-                if (finalIsEdit1) {
-                    realm.beginTransaction();
-                    myTran.ubSet(uu, bb, uamint, bamint, cld.getTime());
-                    myTran.setmNote(tNote);
-                } else {
-                    mTra ts = new mTra();
-                    ts.ubSet(uu, bb, uamint, bamint, cld.getTime());
-                    ts.setmNote(tNote);
-                    realm.beginTransaction();
-                    realm.copyToRealm(ts);
+                if (isEdit) {
+                    int typeCode = 0;
+                    if (repeatEdited() && modeBefore != 0)
+                        typeCode = 2;
+                    else if (modeBefore != 0 && transEdited(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote))
+                        typeCode = 1;
+                    if (typeCode > 0) {
+                        bamBefore = bamint;
+                        uamBefore = uamint;
+                        aUBefore = aU.getSelectedItemPosition();
+                        aBBefore = aB.getSelectedItemPosition();
+                        noteBefore = tNote;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.apply_changes_to);
+                        String[] types;
+                        if (typeCode == 2)
+                            types = getResources().getStringArray(R.array.repeat_apply_types);
+                        else
+                            types = getResources().getStringArray(R.array.repeat_apply_types_3);
+                        final int finalTypeCode = typeCode;
+                        builder.setSingleChoiceItems(types, -1, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                applymode = which + finalTypeCode;
+                            }
+                        });
+                        builder.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+                        return;
+                    }
                 }
-                realm.commitTransaction();
-                Navigation.findNavController(root).navigateUp();
+                writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote);
             }
         });
         ImageButton bt_Delete = root.findViewById(R.id.ib_nt_delete);
-        final boolean finalIsEdit = isEdit;
         bt_Delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (finalIsEdit) {
+                if (isEdit) {
                     realm.beginTransaction();
                     myTran.deleteFromRealm();
                     realm.commitTransaction();
@@ -339,13 +409,55 @@ public class EditTransaction extends Fragment {
         repeatButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PlanTaskDialogFragment planTaskDialogFragment = new PlanTaskDialogFragment();
+                PlanTaskDialogFragment planTaskDialogFragment = new PlanTaskDialogFragment(etself);
+                if (loopMode != 0) {
+                    planTaskDialogFragment.setOldTypeAndInterval(loopMode, repeatInt);
+                    if (MonthReverse)
+                        planTaskDialogFragment.setCb_reverse();
+                    if (endDate != null)
+                        planTaskDialogFragment.setOldEndDate(endDate);
+                }
                 planTaskDialogFragment.show(Objects.requireNonNull(getActivity()).getSupportFragmentManager(), "edit_repeat_dialog");
             }
         });
         if (isEdit && myTran.hasTask())
             repeatButton.setImageTintList(getContext().getResources().getColorStateList(R.color.repeating, getContext().getTheme()));
         return root;
+    }
+
+    private void writeTransaction(int intau, int intab, long longuam, long longbam, String noteString) {
+        mAccount uu = accList.get(intau - 1);
+        mAccount bb = accList.get(intab - 1);
+        if (isEdit) {
+            realm.beginTransaction();
+            myTran.ubSet(uu, bb, longuam, longbam, cld.getTime());
+            myTran.setmNote(noteString);
+            if (loopMode != 0) {
+                mPlanTask planTask = realm.createObject(mPlanTask.class);
+                planTask.setBasic(uu, bb, longbam, longbam);
+                planTask.setLoopType(loopMode);
+                planTask.setLoopInterval(repeatInt);
+                myTran.setPlanTask(planTask);
+            }
+        } else {
+            mTra ts = new mTra();
+            ts.ubSet(uu, bb, longuam, longbam, cld.getTime());
+            ts.setmNote(noteString);
+            if (loopMode != 0) {
+                mPlanTask planTask = new mPlanTask();
+                planTask.setBasic(uu, bb, longbam, longbam);
+                planTask.setLoopType(loopMode);
+                planTask.setLoopInterval(repeatInt);
+                realm.beginTransaction();
+                realm.copyToRealm(planTask);
+                realm.commitTransaction();
+                ts.setPlanTask(planTask);
+            }
+            realm.beginTransaction();
+            realm.copyToRealm(ts);
+        }
+        realm.commitTransaction();
+        Navigation.findNavController(root).navigateUp();
     }
 
     @Override
@@ -424,7 +536,45 @@ public class EditTransaction extends Fragment {
                         Math.pow(10d, accList.get(aB.getSelectedItemPosition() - 1).getCurrency().getFractionalDigits());
                 ratio.setText(Double.toString(udouble / bdouble));
             }
-        } else
+        } else {
             ratio.setText("");
+        }
+    }
+
+    public void setRepeatMode(int mode) {
+        loopMode = mode;
+        if (mode == 0)
+            repeatButton.setImageTintList(Objects.requireNonNull(getContext()).getResources().getColorStateList(R.color.norepeating, getContext().getTheme()));
+        else
+            repeatButton.setImageTintList(Objects.requireNonNull(getContext()).getResources().getColorStateList(R.color.repeating, getContext().getTheme()));
+    }
+
+    public void setMonthReverse(boolean monthReverse) {
+        MonthReverse = monthReverse;
+    }
+
+    public void setRepeatInt(int intRepeat) {
+        repeatInt = intRepeat;
+    }
+
+    public void setEndDate(Date date) {
+        endDate = date;
+    }
+
+    private boolean repeatEdited() {
+        if (modeBefore != loopMode || intervalBefore != repeatInt)
+            return true;
+        return loopMode == 3 && myTran.getPlanTask().getFeature() <= 0 ^ MonthReverse;
+    }
+
+    private boolean transEdited(int aUAfter, int aBAfter, long uamAfter, long bamAfter, String noteAfter) {
+        return aUAfter != aUBefore || aBAfter != aBBefore || uamAfter != uamBefore || bamAfter != bamBefore || !noteAfter.equals(noteBefore);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (!isEdit)
+            bam.requestFocus();
     }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="repeat_apply_types_3">
+        <item>Current</item>
+        <item>This And Future</item>
+        <item>All</item>
+    </string-array>
+</resources>
