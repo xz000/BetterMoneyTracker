@@ -11,9 +11,10 @@ public class mPlanTask extends RealmObject {
     private long uDelta;
     private long bDelta;
     private Date nextTime;
-    private Date lastTime;
+    private Date firstTime;
+    //private Date lastTime;
     //private mTra firstTra;
-    private mTra latestTra;
+    //private mTra latestTra;
     private Date endTime;
     private String mNote;
     private int loopType;//1,2,3,4,Day,Week,Month,Year
@@ -21,6 +22,7 @@ public class mPlanTask extends RealmObject {
     private int feature;//循环特征，用于确定下次交易日期
     private int order;//用于排序以及查找同一任务下所有交易
 
+/*
     public mTra getLatestTra() {
         return latestTra;
     }
@@ -29,7 +31,6 @@ public class mPlanTask extends RealmObject {
         latestTra = tra;
     }
 
-/*
     public mTra getFirstTra() {
         return firstTra;
     }
@@ -83,12 +84,13 @@ public class mPlanTask extends RealmObject {
         nextTime = time;
     }
 
-    public void setBasic(mAccount aU, mAccount aB, long deltaU, long deltaB, String note) {
+    public void setBasic(mAccount aU, mAccount aB, long deltaU, long deltaB, String note, Date firstT) {
         accU = aU;
         accB = aB;
         uDelta = deltaU;
         bDelta = deltaB;
         mNote = note;
+        firstTime = firstT;
     }
 
     public mAccount getAccU() {
@@ -117,5 +119,17 @@ public class mPlanTask extends RealmObject {
 
     public String getmNote() {
         return mNote;
+    }
+
+    public void setOrder(int order1) {
+        order = order1;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public Date getFirstTime() {
+        return firstTime;
     }
 }

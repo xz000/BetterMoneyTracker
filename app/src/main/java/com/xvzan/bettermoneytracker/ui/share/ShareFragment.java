@@ -51,6 +51,7 @@ public class ShareFragment extends Fragment implements StartDragListener {
             @Override
             public void onChildViewRemoved(View parent, View child) {
                 AddAccountDialogFragment.addAccountListener listener = (AddAccountDialogFragment.addAccountListener) getActivity();
+                assert listener != null;
                 listener.onAccountsEdited();
             }
         });

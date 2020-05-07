@@ -43,7 +43,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
+import io.realm.RealmCollection;
 import io.realm.Sort;
 
 public class EditTransaction extends Fragment {
@@ -63,6 +65,12 @@ public class EditTransaction extends Fragment {
     private long uamBefore;
     private String noteBefore;
     private Date dateBefore;
+    private int aUBeforeAfter;
+    private int aBBeforeAfter;
+    private long bamBeforeAfter;
+    private long uamBeforeAfter;
+    private String noteBeforeAfter;
+    private Date dateBeforeAfter;
     private Button dt;
     private Button tm;
     private ImageButton repeatButton;
@@ -334,11 +342,11 @@ public class EditTransaction extends Fragment {
                         else if (transEdited(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote, cld.getTime()))
                             typeCode = 1;
                         if (typeCode > 0) {
-                            bamBefore = bamint;
-                            uamBefore = uamint;
-                            aUBefore = aU.getSelectedItemPosition();
-                            aBBefore = aB.getSelectedItemPosition();
-                            noteBefore = tNote;
+                            bamBeforeAfter = bamint;
+                            uamBeforeAfter = uamint;
+                            aUBeforeAfter = aU.getSelectedItemPosition();
+                            aBBeforeAfter = aB.getSelectedItemPosition();
+                            noteBeforeAfter = tNote;
                             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                             builder.setTitle(R.string.apply_changes_to);
                             String[] types;
@@ -350,12 +358,49 @@ public class EditTransaction extends Fragment {
                             builder.setSingleChoiceItems(types, -1, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    applymode = which + finalTypeCode;
+                                    applymode = which + finalTypeCode;//1:Current,2:This&future,3:All
                                 }
                             });
                             builder.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    switch (applymode) {
+                                        case 1://Current
+                                            loopMode = 0;
+                                            writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamBeforeAfter, bamBeforeAfter, noteBeforeAfter);
+                                            Navigation.findNavController(root).navigateUp();
+                                            break;
+                                        case 2://This and Future
+                                            RealmCollection<mTra> toDelete2 = realm.where(mTra.class).equalTo("planTask.order", myTran.getPlanTask().getOrder()).greaterThanOrEqualTo("mDate", myTran.getmDate()).findAll();
+                                            isEdit = false;
+                                            writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamBeforeAfter, bamBeforeAfter, noteBeforeAfter);
+                                            realm.beginTransaction();
+                                            myTran.getPlanTask().setDisable();
+                                            toDelete2.deleteAllFromRealm();
+                                            realm.commitTransaction();
+                                            Navigation.findNavController(root).navigateUp();
+                                            break;
+                                        case 3://All
+                                            RealmCollection<mTra> toDelete3 = realm.where(mTra.class).equalTo("planTask.order", myTran.getPlanTask().getOrder()).findAll();
+                                            isEdit = false;
+                                            Date firstDate = myTran.getPlanTask().getFirstTime();
+                                            if (!cld.getTime().before(myTran.getPlanTask().getFirstTime()))
+                                                cld.setTime(firstDate);
+                                            mPlanTask planTask1 = myTran.getPlanTask();
+                                            realm.beginTransaction();
+                                            toDelete3.deleteAllFromRealm();
+                                            planTask1.deleteFromRealm();
+                                            OrderedRealmCollection<mPlanTask> tasks = realm.where(mPlanTask.class).findAll();
+                                            int i = 1;
+                                            for (mPlanTask planTask : tasks) {
+                                                planTask.setOrder(i);
+                                                i++;
+                                            }
+                                            realm.commitTransaction();
+                                            writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamBeforeAfter, bamBeforeAfter, noteBeforeAfter);
+                                            Navigation.findNavController(root).navigateUp();
+                                            break;
+                                    }
                                     dialog.dismiss();
                                 }
                             });
@@ -364,11 +409,14 @@ public class EditTransaction extends Fragment {
                             return;
                         }
                         Navigation.findNavController(root).navigateUp();
+                        return;
                     } else
                         writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote);
+                    Navigation.findNavController(root).navigateUp();
                     return;
                 }
                 writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote);
+                Navigation.findNavController(root).navigateUp();
             }
         });
         ImageButton bt_Delete = root.findViewById(R.id.ib_nt_delete);
@@ -441,10 +489,12 @@ public class EditTransaction extends Fragment {
             myTran.ubSet(uu, bb, longuam, longbam, cld.getTime());
             myTran.setmNote(noteString);
             if (loopMode != 0) {
+                int o = realm.where(mPlanTask.class).findAll().size() + 1;
                 mPlanTask planTask = realm.createObject(mPlanTask.class);
-                planTask.setBasic(uu, bb, longbam, longbam, noteString);
+                planTask.setBasic(uu, bb, longbam, longbam, noteString, cld.getTime());
                 planTask.setLoopType(loopMode);
                 planTask.setLoopInterval(repeatInt);
+                planTask.setOrder(o);
                 int f = 0;
                 if (loopMode == 3) {
                     if (MonthReverse)
@@ -461,10 +511,12 @@ public class EditTransaction extends Fragment {
             ts.ubSet(uu, bb, longuam, longbam, cld.getTime());
             ts.setmNote(noteString);
             if (loopMode != 0) {
+                int o = realm.where(mPlanTask.class).findAll().size() + 1;
                 mPlanTask planTask = new mPlanTask();
-                planTask.setBasic(uu, bb, longbam, longbam, noteString);
+                planTask.setBasic(uu, bb, longbam, longbam, noteString, cld.getTime());
                 planTask.setLoopType(loopMode);
                 planTask.setLoopInterval(repeatInt);
+                planTask.setOrder(o);
                 int f = 0;
                 if (loopMode == 3) {
                     if (MonthReverse)
@@ -480,8 +532,8 @@ public class EditTransaction extends Fragment {
             realm.copyToRealm(ts);
         }
         realm.commitTransaction();
-        Navigation.findNavController(root).navigateUp();
-        ((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).loopPlannedTasks();
+        if (loopMode != 0)
+            ((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).loopPlannedTasks();
     }
 
     @Override
@@ -600,5 +652,14 @@ public class EditTransaction extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         if (!isEdit)
             bam.requestFocus();
+    }
+
+    private void reOrderTasks() {
+        OrderedRealmCollection<mPlanTask> tasks = realm.where(mPlanTask.class).findAll();
+        int i = 1;
+        for (mPlanTask planTask : tasks) {
+            planTask.setOrder(i);
+            i++;
+        }
     }
 }
