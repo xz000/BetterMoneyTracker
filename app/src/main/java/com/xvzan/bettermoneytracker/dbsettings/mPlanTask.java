@@ -15,6 +15,7 @@ public class mPlanTask extends RealmObject {
     //private mTra firstTra;
     private mTra latestTra;
     private Date endTime;
+    private String mNote;
     private int loopType;//1,2,3,4,Day,Week,Month,Year
     private int loopInterval;//循环间隔
     private int feature;//循环特征，用于确定下次交易日期
@@ -82,10 +83,39 @@ public class mPlanTask extends RealmObject {
         nextTime = time;
     }
 
-    public void setBasic(mAccount aU, mAccount aB, long deltaU, long deltaB) {
+    public void setBasic(mAccount aU, mAccount aB, long deltaU, long deltaB, String note) {
         accU = aU;
         accB = aB;
         uDelta = deltaU;
         bDelta = deltaB;
+        mNote = note;
+    }
+
+    public mAccount getAccU() {
+        return accU;
+    }
+
+    public mAccount getAccB() {
+        return accB;
+    }
+
+    public long getuAm() {
+        return uDelta;
+    }
+
+    public long getbAm() {
+        return bDelta;
+    }
+
+    public void setActive() {
+        isActive = true;
+    }
+
+    public void setDisable() {
+        isActive = false;
+    }
+
+    public String getmNote() {
+        return mNote;
     }
 }

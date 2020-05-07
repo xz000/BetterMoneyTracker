@@ -434,9 +434,18 @@ public class EditTransaction extends Fragment {
             myTran.setmNote(noteString);
             if (loopMode != 0) {
                 mPlanTask planTask = realm.createObject(mPlanTask.class);
-                planTask.setBasic(uu, bb, longbam, longbam);
+                planTask.setBasic(uu, bb, longbam, longbam, noteString);
                 planTask.setLoopType(loopMode);
                 planTask.setLoopInterval(repeatInt);
+                int f = 0;
+                if (loopMode == 3) {
+                    if (MonthReverse)
+                        f = cld.getActualMaximum(Calendar.DAY_OF_MONTH) - cld.get(Calendar.DAY_OF_MONTH) - 1;
+                    else
+                        f = cld.get(Calendar.DAY_OF_MONTH);
+                }
+                planTask.setNextTime(calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
+                planTask.setActive();
                 myTran.setPlanTask(planTask);
             }
         } else {
@@ -445,12 +454,18 @@ public class EditTransaction extends Fragment {
             ts.setmNote(noteString);
             if (loopMode != 0) {
                 mPlanTask planTask = new mPlanTask();
-                planTask.setBasic(uu, bb, longbam, longbam);
+                planTask.setBasic(uu, bb, longbam, longbam, noteString);
                 planTask.setLoopType(loopMode);
                 planTask.setLoopInterval(repeatInt);
-                realm.beginTransaction();
-                realm.copyToRealm(planTask);
-                realm.commitTransaction();
+                int f = 0;
+                if (loopMode == 3) {
+                    if (MonthReverse)
+                        f = cld.getActualMaximum(Calendar.DAY_OF_MONTH) - cld.get(Calendar.DAY_OF_MONTH) - 1;
+                    else
+                        f = cld.get(Calendar.DAY_OF_MONTH);
+                }
+                planTask.setNextTime(calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
+                planTask.setActive();
                 ts.setPlanTask(planTask);
             }
             realm.beginTransaction();
@@ -576,5 +591,34 @@ public class EditTransaction extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         if (!isEdit)
             bam.requestFocus();
+    }
+
+    private Date calculateNextTime(int type, int interval, int feature, Date latestDate) {
+        Calendar calendar = Calendar.getInstance();
+        switch (type) {
+            case 1:
+                calendar.setTime(latestDate);
+                calendar.add(Calendar.DATE, interval);
+                return calendar.getTime();
+            case 2:
+                calendar.setTime(latestDate);
+                calendar.add(Calendar.DATE, interval * 7);
+                return calendar.getTime();
+            case 3:
+                calendar.setTime(latestDate);
+                calendar.add(Calendar.MONTH, interval);
+                if (feature != 0) {
+                    if (feature < 0)
+                        feature += calendar.getActualMaximum(Calendar.DAY_OF_MONTH) + 1;
+                    calendar.set(Calendar.DAY_OF_MONTH, feature);
+                }
+                return calendar.getTime();
+            case 4:
+                calendar.setTime(latestDate);
+                calendar.add(Calendar.YEAR, interval);
+                return calendar.getTime();
+            default:
+                return new Date(Long.MAX_VALUE);
+        }
     }
 }

@@ -28,34 +28,37 @@ public class BetterMoneyTracker extends Application {
             OrderedRealmCollection<mPlanTask> planTasks = realm.where(mPlanTask.class)
                     .equalTo("isActive", true).lessThan("nextTime", timeNow).findAll();
             if (planTasks.size() == 0) return;
-            realm.beginTransaction();
             for (mPlanTask planTask : planTasks) {
                 int t = planTask.getLoopType();
                 int i = planTask.getLoopInterval();
-                int f = planTask.getFeature();
-                mAccount ua = planTask.getLatestTra().getAccU();
-                mAccount ba = planTask.getLatestTra().getAccB();
-                long um = planTask.getLatestTra().getuAm();
-                long bm = planTask.getLatestTra().getbAm();
-                String note = planTask.getLatestTra().getmNote();
+                int f = 0;
+                if (t == 3) f = planTask.getFeature();
+                mAccount ua = planTask.getAccU();
+                mAccount ba = planTask.getAccB();
+                long um = planTask.getuAm();
+                long bm = planTask.getbAm();
+                String note = planTask.getmNote();
                 Date date = planTask.getNextTime();
                 while (date.before(timeNow)) {
                     mTra tra = new mTra();
-                    tra.directSet(ua, ba, um, bm, date);
+                    tra.ubSet(ua, ba, um, bm, date);
                     if (note != null) {
                         tra.setmNote(note);
                     }
                     tra.setPlanTask(planTask);
+                    realm.beginTransaction();
                     realm.copyToRealm(tra);
+                    realm.commitTransaction();
                     date = calculateNextTime(t, i, f, date);
                 }
+                realm.beginTransaction();
                 planTask.setNextTime(date);
+                realm.commitTransaction();
             }
-            realm.commitTransaction();
         }
     }
 
-    public Date calculateNextTime(int type, int interval, int feature, Date latestDate) {
+    private Date calculateNextTime(int type, int interval, int feature, Date latestDate) {
         Calendar calendar = Calendar.getInstance();
         switch (type) {
             case 1:

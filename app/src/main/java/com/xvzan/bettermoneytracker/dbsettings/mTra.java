@@ -99,7 +99,7 @@ public class mTra extends RealmObject {
     }
 
     public String getmNote() {
-        return mNote;
+        return mNote.toString();
     }
 
     public void setEditme() {

@@ -3,6 +3,7 @@ package com.xvzan.bettermoneytracker.ui.home;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -113,6 +114,10 @@ public class Adapter_Single extends RecyclerView.Adapter<Adapter_Single.SingleTr
                 holder.tsTotal.setTextColor(holder.tsDate.getTextColors());
             holder.tsTotal.setText(holder.format.format(longs[position] / d_Double));
         }
+        if (mTraList.get(position).hasTask())
+            holder.tsDate.setBackgroundTintMode(PorterDuff.Mode.DST);
+        else
+            holder.tsDate.setBackgroundTintMode(PorterDuff.Mode.SRC);
         holder.tsDate.setText(sdf.format(mTraList.get(position).getmDate()));
         holder.tsEdit.setOnClickListener(new View.OnClickListener() {
             @Override

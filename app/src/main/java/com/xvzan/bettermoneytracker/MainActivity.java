@@ -145,7 +145,6 @@ public class MainActivity extends AppCompatActivity implements AddAccountDialogF
         }
     }
 
-
     @Override
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
