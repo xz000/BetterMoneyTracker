@@ -22,7 +22,7 @@ public class BetterMoneyTracker extends Application {
         loopPlannedTasks();
     }
 
-    private void loopPlannedTasks() {
+    public void loopPlannedTasks() {
         try (Realm realm = Realm.getDefaultInstance()) {
             Date timeNow = Calendar.getInstance().getTime();
             OrderedRealmCollection<mPlanTask> planTasks = realm.where(mPlanTask.class)
@@ -58,7 +58,7 @@ public class BetterMoneyTracker extends Application {
         }
     }
 
-    private Date calculateNextTime(int type, int interval, int feature, Date latestDate) {
+    public Date calculateNextTime(int type, int interval, int feature, Date latestDate) {
         Calendar calendar = Calendar.getInstance();
         switch (type) {
             case 1:

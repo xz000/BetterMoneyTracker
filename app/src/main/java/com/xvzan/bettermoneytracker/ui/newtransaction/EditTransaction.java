@@ -29,6 +29,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
+import com.xvzan.bettermoneytracker.BetterMoneyTracker;
 import com.xvzan.bettermoneytracker.R;
 import com.xvzan.bettermoneytracker.dbsettings.mAccount;
 import com.xvzan.bettermoneytracker.dbsettings.mPlanTask;
@@ -61,6 +62,7 @@ public class EditTransaction extends Fragment {
     private long bamBefore;
     private long uamBefore;
     private String noteBefore;
+    private Date dateBefore;
     private Button dt;
     private Button tm;
     private ImageButton repeatButton;
@@ -249,6 +251,7 @@ public class EditTransaction extends Fragment {
             uam.setText(Long.toString(uamBefore));
             noteBefore = myTran.getmNote();
             note.setText(noteBefore);
+            dateBefore = myTran.getmDate();
             //setInputFields();
         } else {
             final String accstr = getContext().getSharedPreferences("data", Context.MODE_PRIVATE).getString("nowAccount", "");
@@ -325,40 +328,45 @@ public class EditTransaction extends Fragment {
                 String tNote = note.getText().toString();
                 if (isEdit) {
                     int typeCode = 0;
-                    if (repeatEdited() && modeBefore != 0)
-                        typeCode = 2;
-                    else if (modeBefore != 0 && transEdited(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote))
-                        typeCode = 1;
-                    if (typeCode > 0) {
-                        bamBefore = bamint;
-                        uamBefore = uamint;
-                        aUBefore = aU.getSelectedItemPosition();
-                        aBBefore = aB.getSelectedItemPosition();
-                        noteBefore = tNote;
-                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                        builder.setTitle(R.string.apply_changes_to);
-                        String[] types;
-                        if (typeCode == 2)
-                            types = getResources().getStringArray(R.array.repeat_apply_types);
-                        else
-                            types = getResources().getStringArray(R.array.repeat_apply_types_3);
-                        final int finalTypeCode = typeCode;
-                        builder.setSingleChoiceItems(types, -1, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                applymode = which + finalTypeCode;
-                            }
-                        });
-                        builder.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                        AlertDialog dialog = builder.create();
-                        dialog.show();
-                        return;
-                    }
+                    if (modeBefore != 0) {
+                        if (repeatEdited())
+                            typeCode = 2;
+                        else if (transEdited(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote, cld.getTime()))
+                            typeCode = 1;
+                        if (typeCode > 0) {
+                            bamBefore = bamint;
+                            uamBefore = uamint;
+                            aUBefore = aU.getSelectedItemPosition();
+                            aBBefore = aB.getSelectedItemPosition();
+                            noteBefore = tNote;
+                            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                            builder.setTitle(R.string.apply_changes_to);
+                            String[] types;
+                            if (typeCode == 2)
+                                types = getResources().getStringArray(R.array.repeat_apply_types);
+                            else
+                                types = getResources().getStringArray(R.array.repeat_apply_types_3);
+                            final int finalTypeCode = typeCode;
+                            builder.setSingleChoiceItems(types, -1, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    applymode = which + finalTypeCode;
+                                }
+                            });
+                            builder.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                            return;
+                        }
+                        Navigation.findNavController(root).navigateUp();
+                    } else
+                        writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote);
+                    return;
                 }
                 writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote);
             }
@@ -444,7 +452,7 @@ public class EditTransaction extends Fragment {
                     else
                         f = cld.get(Calendar.DAY_OF_MONTH);
                 }
-                planTask.setNextTime(calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
+                planTask.setNextTime(((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
                 planTask.setActive();
                 myTran.setPlanTask(planTask);
             }
@@ -464,7 +472,7 @@ public class EditTransaction extends Fragment {
                     else
                         f = cld.get(Calendar.DAY_OF_MONTH);
                 }
-                planTask.setNextTime(calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
+                planTask.setNextTime(((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
                 planTask.setActive();
                 ts.setPlanTask(planTask);
             }
@@ -473,6 +481,7 @@ public class EditTransaction extends Fragment {
         }
         realm.commitTransaction();
         Navigation.findNavController(root).navigateUp();
+        ((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).loopPlannedTasks();
     }
 
     @Override
@@ -582,8 +591,8 @@ public class EditTransaction extends Fragment {
         return loopMode == 3 && myTran.getPlanTask().getFeature() <= 0 ^ MonthReverse;
     }
 
-    private boolean transEdited(int aUAfter, int aBAfter, long uamAfter, long bamAfter, String noteAfter) {
-        return aUAfter != aUBefore || aBAfter != aBBefore || uamAfter != uamBefore || bamAfter != bamBefore || !noteAfter.equals(noteBefore);
+    private boolean transEdited(int aUAfter, int aBAfter, long uamAfter, long bamAfter, String noteAfter, Date dateAfter) {
+        return aUAfter != aUBefore || aBAfter != aBBefore || uamAfter != uamBefore || bamAfter != bamBefore || !noteAfter.equals(noteBefore) || !dateAfter.equals(dateBefore);
     }
 
     @Override
@@ -591,34 +600,5 @@ public class EditTransaction extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         if (!isEdit)
             bam.requestFocus();
-    }
-
-    private Date calculateNextTime(int type, int interval, int feature, Date latestDate) {
-        Calendar calendar = Calendar.getInstance();
-        switch (type) {
-            case 1:
-                calendar.setTime(latestDate);
-                calendar.add(Calendar.DATE, interval);
-                return calendar.getTime();
-            case 2:
-                calendar.setTime(latestDate);
-                calendar.add(Calendar.DATE, interval * 7);
-                return calendar.getTime();
-            case 3:
-                calendar.setTime(latestDate);
-                calendar.add(Calendar.MONTH, interval);
-                if (feature != 0) {
-                    if (feature < 0)
-                        feature += calendar.getActualMaximum(Calendar.DAY_OF_MONTH) + 1;
-                    calendar.set(Calendar.DAY_OF_MONTH, feature);
-                }
-                return calendar.getTime();
-            case 4:
-                calendar.setTime(latestDate);
-                calendar.add(Calendar.YEAR, interval);
-                return calendar.getTime();
-            default:
-                return new Date(Long.MAX_VALUE);
-        }
     }
 }
