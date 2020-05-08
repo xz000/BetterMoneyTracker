@@ -342,6 +342,7 @@ public class EditTransaction extends Fragment {
                         else if (transEdited(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote, cld.getTime()))
                             typeCode = 1;
                         if (typeCode > 0) {
+                            applymode = 0;
                             bamBeforeAfter = bamint;
                             uamBeforeAfter = uamint;
                             aUBeforeAfter = aU.getSelectedItemPosition();
@@ -424,6 +425,59 @@ public class EditTransaction extends Fragment {
             @Override
             public void onClick(View v) {
                 if (isEdit) {
+                    if (myTran.hasTask()) {
+                        applymode = 0;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                        builder.setTitle(R.string.delete);
+                        builder.setSingleChoiceItems(R.array.repeat_apply_types_3, -1, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                applymode = which + 1;
+                            }
+                        });
+                        builder.setPositiveButton(R.string.done, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                switch (applymode) {
+                                    case 1://Current
+                                        realm.beginTransaction();
+                                        myTran.deleteFromRealm();
+                                        realm.commitTransaction();
+                                        Navigation.findNavController(root).navigateUp();
+                                        break;
+                                    case 2://This and Future
+                                        RealmCollection<mTra> toDelete2 = realm.where(mTra.class).equalTo("planTask.order", myTran.getPlanTask().getOrder()).greaterThanOrEqualTo("mDate", myTran.getmDate()).findAll();
+                                        isEdit = false;
+                                        realm.beginTransaction();
+                                        myTran.getPlanTask().setDisable();
+                                        toDelete2.deleteAllFromRealm();
+                                        realm.commitTransaction();
+                                        Navigation.findNavController(root).navigateUp();
+                                        break;
+                                    case 3://All
+                                        RealmCollection<mTra> toDelete3 = realm.where(mTra.class).equalTo("planTask.order", myTran.getPlanTask().getOrder()).findAll();
+                                        isEdit = false;
+                                        mPlanTask planTask1 = myTran.getPlanTask();
+                                        realm.beginTransaction();
+                                        toDelete3.deleteAllFromRealm();
+                                        planTask1.deleteFromRealm();
+                                        OrderedRealmCollection<mPlanTask> tasks = realm.where(mPlanTask.class).findAll();
+                                        int i = 1;
+                                        for (mPlanTask planTask : tasks) {
+                                            planTask.setOrder(i);
+                                            i++;
+                                        }
+                                        realm.commitTransaction();
+                                        Navigation.findNavController(root).navigateUp();
+                                        break;
+                                }
+                                dialog.dismiss();
+                            }
+                        });
+                        AlertDialog dialog = builder.create();
+                        dialog.show();
+                        return;
+                    }
                     realm.beginTransaction();
                     myTran.deleteFromRealm();
                     realm.commitTransaction();
