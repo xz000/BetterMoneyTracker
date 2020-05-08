@@ -18,7 +18,7 @@ public class BetterMoneyTracker extends Application {
     public void onCreate() {
         super.onCreate();
         Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder().name("smt.realm").build();
+        RealmConfiguration config = new RealmConfiguration.Builder().name("bmt.realm").build();
         loopPlannedTasks();
     }
 
@@ -40,6 +40,12 @@ public class BetterMoneyTracker extends Application {
                 String note = planTask.getmNote();
                 Date date = planTask.getNextTime();
                 while (date.before(timeNow)) {
+                    if (planTask.hasEndTime() && date.after(planTask.getEndTime())) {
+                        realm.beginTransaction();
+                        planTask.setDisable();
+                        realm.commitTransaction();
+                        break;
+                    }
                     mTra tra = new mTra();
                     tra.ubSet(ua, ba, um, bm, date);
                     if (note != null) {

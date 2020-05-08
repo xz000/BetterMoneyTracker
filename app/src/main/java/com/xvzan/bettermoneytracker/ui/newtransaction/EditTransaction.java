@@ -7,7 +7,6 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.Debug;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -50,7 +49,6 @@ import io.realm.Sort;
 
 public class EditTransaction extends Fragment {
 
-    private List<String> nameList;
     private TextView tU;
     private TextView tB;
     private Spinner aU;
@@ -65,12 +63,12 @@ public class EditTransaction extends Fragment {
     private long uamBefore;
     private String noteBefore;
     private Date dateBefore;
-    private int aUBeforeAfter;
-    private int aBBeforeAfter;
+    //private int aUBeforeAfter;
+    //private int aBBeforeAfter;
     private long bamBeforeAfter;
     private long uamBeforeAfter;
     private String noteBeforeAfter;
-    private Date dateBeforeAfter;
+    //private Date dateBeforeAfter;
     private Button dt;
     private Button tm;
     private ImageButton repeatButton;
@@ -127,7 +125,7 @@ public class EditTransaction extends Fragment {
         tU = root.findViewById(R.id.tv_nt_aU);
         tB = root.findViewById(R.id.tv_nt_aB);
         repeatButton = root.findViewById(R.id.ib_nt_repeat);
-        nameList = new ArrayList<>();
+        List<String> nameList = new ArrayList<>();
         nameList.add("");
         typeList = new ArrayList<>();
         typeList.add(5);
@@ -345,8 +343,8 @@ public class EditTransaction extends Fragment {
                             applymode = 0;
                             bamBeforeAfter = bamint;
                             uamBeforeAfter = uamint;
-                            aUBeforeAfter = aU.getSelectedItemPosition();
-                            aBBeforeAfter = aB.getSelectedItemPosition();
+                            //aUBeforeAfter = aU.getSelectedItemPosition();
+                            //aBBeforeAfter = aB.getSelectedItemPosition();
                             noteBeforeAfter = tNote;
                             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                             builder.setTitle(R.string.apply_changes_to);
@@ -546,6 +544,8 @@ public class EditTransaction extends Fragment {
                 int o = realm.where(mPlanTask.class).findAll().size() + 1;
                 mPlanTask planTask = realm.createObject(mPlanTask.class);
                 planTask.setBasic(uu, bb, longbam, longbam, noteString, cld.getTime());
+                if (endDate != null)
+                    planTask.setEndTime(endDate);
                 planTask.setLoopType(loopMode);
                 planTask.setLoopInterval(repeatInt);
                 planTask.setOrder(o);
@@ -568,6 +568,8 @@ public class EditTransaction extends Fragment {
                 int o = realm.where(mPlanTask.class).findAll().size() + 1;
                 mPlanTask planTask = new mPlanTask();
                 planTask.setBasic(uu, bb, longbam, longbam, noteString, cld.getTime());
+                if (endDate != null)
+                    planTask.setEndTime(endDate);
                 planTask.setLoopType(loopMode);
                 planTask.setLoopInterval(repeatInt);
                 planTask.setOrder(o);
@@ -692,7 +694,7 @@ public class EditTransaction extends Fragment {
     }
 
     private boolean repeatEdited() {
-        if (modeBefore != loopMode || intervalBefore != repeatInt)
+        if (modeBefore != loopMode || intervalBefore != repeatInt || endDateBefore != endDate)
             return true;
         return loopMode == 3 && myTran.getPlanTask().getFeature() <= 0 ^ MonthReverse;
     }
@@ -706,14 +708,5 @@ public class EditTransaction extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         if (!isEdit)
             bam.requestFocus();
-    }
-
-    private void reOrderTasks() {
-        OrderedRealmCollection<mPlanTask> tasks = realm.where(mPlanTask.class).findAll();
-        int i = 1;
-        for (mPlanTask planTask : tasks) {
-            planTask.setOrder(i);
-            i++;
-        }
     }
 }
