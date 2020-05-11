@@ -1,6 +1,7 @@
 package com.xvzan.bettermoneytracker.ui.exportandimport;
 
 import android.annotation.SuppressLint;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,20 +30,13 @@ import io.realm.Sort;
 
 public class ExportDialogFragment extends DialogFragment {
 
-    private File csvC;
-    private File csvA;
-    private File csvT;
-
     @SuppressLint("SetTextI18n")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.export_dialog_gragment, container);
         TextView tvf = view.findViewById(R.id.tv_export_folder);
-        csvC = new File(Objects.requireNonNull(getContext()).getExternalFilesDir(null), "currencies");
-        csvA = new File(getContext().getExternalFilesDir(null), "accounts");
-        csvT = new File(getContext().getExternalFilesDir(null), "transactions");
-        tvf.setText("Output Folder: " + Objects.requireNonNull(getContext().getExternalFilesDir(null)).getAbsolutePath());
+        tvf.setText("Output Folder: " + Objects.requireNonNull(Objects.requireNonNull(getContext()).getExternalFilesDir(null)).getAbsolutePath());
         Button bte = view.findViewById(R.id.bt_export);
         bte.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,17 +47,13 @@ public class ExportDialogFragment extends DialogFragment {
         return view;
     }
 
+    @SuppressLint("SimpleDateFormat")
     private void exportCSV() {
-        if (csvC.exists())
-            csvC.delete();
-        csvC = new File(Objects.requireNonNull(getContext()).getExternalFilesDir(null), "currencies");
-        if (csvA.exists())
-            csvA.delete();
-        csvA = new File(Objects.requireNonNull(getContext()).getExternalFilesDir(null), "accounts");
-        if (csvT.exists())
-            csvT.delete();
-        csvT = new File(getContext().getExternalFilesDir(null), "transactions");
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        String s_folder = (new SimpleDateFormat("yyyyMMdd_HHmmss")).format(Calendar.getInstance().getTime());
+        File csvC = new File(Objects.requireNonNull(getContext()).getExternalFilesDir(s_folder), "currencies");
+        File csvA = new File(Objects.requireNonNull(getContext()).getExternalFilesDir(s_folder), "accounts");
+        File csvT = new File(getContext().getExternalFilesDir(s_folder), "transactions");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         try {
             FileOutputStream fileOutputStream = new FileOutputStream(csvC, true);
             StringBuilder stringBuilder = new StringBuilder();
