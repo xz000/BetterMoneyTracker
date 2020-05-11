@@ -79,8 +79,12 @@ public class BetterMoneyTracker extends Application {
                 calendar.setTime(latestDate);
                 calendar.add(Calendar.MONTH, interval);
                 if (feature != 0) {
-                    if (feature < 0)
+                    if (feature < 0) {
                         feature += calendar.getActualMaximum(Calendar.DAY_OF_MONTH) + 1;
+                        if (feature < 1)
+                            feature = 1;
+                    } else
+                        feature = Math.min(calendar.getActualMaximum(Calendar.DAY_OF_MONTH), feature);
                     calendar.set(Calendar.DAY_OF_MONTH, feature);
                 }
                 return calendar.getTime();

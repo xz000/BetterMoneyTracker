@@ -8,8 +8,8 @@ android {
         applicationId "com.xvzan.bettermoneytracker"
         minSdkVersion 24
         targetSdkVersion 29
-        versionCode 20200511
-        versionName "0.0.3"
+        versionCode 20200512
+        versionName "0.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

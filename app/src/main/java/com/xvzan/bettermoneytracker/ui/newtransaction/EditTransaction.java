@@ -552,9 +552,10 @@ public class EditTransaction extends Fragment {
                 int f = 0;
                 if (loopMode == 3) {
                     if (MonthReverse)
-                        f = cld.getActualMaximum(Calendar.DAY_OF_MONTH) - cld.get(Calendar.DAY_OF_MONTH) - 1;
+                        f = cld.get(Calendar.DAY_OF_MONTH) - cld.getActualMaximum(Calendar.DAY_OF_MONTH) - 1;
                     else
                         f = cld.get(Calendar.DAY_OF_MONTH);
+                    planTask.setFeature(f);
                 }
                 planTask.setNextTime(((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
                 planTask.setActive();
@@ -576,9 +577,10 @@ public class EditTransaction extends Fragment {
                 int f = 0;
                 if (loopMode == 3) {
                     if (MonthReverse)
-                        f = cld.getActualMaximum(Calendar.DAY_OF_MONTH) - cld.get(Calendar.DAY_OF_MONTH) - 1;
+                        f = cld.get(Calendar.DAY_OF_MONTH) - cld.getActualMaximum(Calendar.DAY_OF_MONTH) - 1;
                     else
                         f = cld.get(Calendar.DAY_OF_MONTH);
+                    planTask.setFeature(f);
                 }
                 planTask.setNextTime(((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
                 planTask.setActive();
