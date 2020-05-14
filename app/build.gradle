@@ -3,13 +3,13 @@ apply plugin: 'realm-android'
 
 android {
     compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.xvzan.bettermoneytracker"
         minSdkVersion 24
         targetSdkVersion 29
-        versionCode 20200512
-        versionName "0.0.4"
+        versionCode 20200515
+        versionName "0.0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }

@@ -23,7 +23,11 @@ import com.xvzan.bettermoneytracker.ui.addaccount.AddAccountDialogFragment;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Currency;
+import java.util.Locale;
 import java.util.Objects;
 
 import io.realm.Realm;
@@ -48,12 +52,6 @@ public class ImportDialogfragment extends DialogFragment {
         csvT = new File(getContext().getExternalFilesDir(null), "import" + File.separator + "transactions");
         if (csvC.exists()) {
             tvc.setText("Import currencies from :" + csvC.getAbsolutePath());
-            bti.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    importCSV();
-                }
-            });
         } else {
             tvc.setText(csvC.getAbsolutePath() + " not found!");
             tvc.setTextColor(Color.RED);
@@ -70,6 +68,13 @@ public class ImportDialogfragment extends DialogFragment {
             tvt.setText(csvT.getAbsolutePath() + " not found");
             tvt.setTextColor(Color.RED);
         }
+        if (csvA.exists() || csvC.exists())
+            bti.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    importCSV();
+                }
+            });
         return view;
     }
 
@@ -77,20 +82,34 @@ public class ImportDialogfragment extends DialogFragment {
         @SuppressLint("SimpleDateFormat") SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         try (Realm realm = Realm.getDefaultInstance()) {
             try {
-                BufferedReader bufferedReader = new BufferedReader(new FileReader(csvC));
+                BufferedReader bufferedReader;
+                int s;
+                boolean isSimple = false;
                 String line;
-                int s = 1;
-                while ((line = bufferedReader.readLine()) != null) {
-                    String[] item = line.split("\t");
-                    mCurrency mc = new mCurrency();
-                    mc.setALL("", item[0], item[1], Integer.parseInt(item[2]));
-                    mc.setOrder(s);
+                if (!csvC.exists() && realm.where(mCurrency.class).findAll().size() == 0) {
+                    isSimple = true;
+                    mCurrency fc = new mCurrency();
+                    Currency currency = Currency.getInstance(Locale.getDefault());
+                    fc.setALL(currency.getSymbol(), currency.getCurrencyCode(), ((DecimalFormat) NumberFormat.getCurrencyInstance()).toPattern(), currency.getDefaultFractionDigits());
+                    fc.setOrder(1);
                     realm.beginTransaction();
-                    realm.copyToRealm(mc);
+                    realm.copyToRealm(fc);
                     realm.commitTransaction();
-                    s++;
+                } else {
+                    bufferedReader = new BufferedReader(new FileReader(csvC));
+                    s = 1;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        String[] item = line.split("\t");
+                        mCurrency mc = new mCurrency();
+                        mc.setALL("", item[0], item[1], Integer.parseInt(item[2]));
+                        mc.setOrder(s);
+                        realm.beginTransaction();
+                        realm.copyToRealm(mc);
+                        realm.commitTransaction();
+                        s++;
+                    }
+                    csvC.delete();
                 }
-                csvC.delete();
                 if (csvA.exists()) {
                     bufferedReader = new BufferedReader(new FileReader(csvA));
                     AddAccountDialogFragment.addAccountListener listener = (AddAccountDialogFragment.addAccountListener) getActivity();
@@ -101,7 +120,9 @@ public class ImportDialogfragment extends DialogFragment {
                         ma.setAname(item[0]);
                         ma.setAType(Integer.parseInt(item[1]));
                         if (Integer.parseInt(item[1]) <= 1)
-                            ma.setCurrency(realm.where(mCurrency.class).equalTo("name", item[2]).findFirst());
+                            if (!isSimple)
+                                ma.setCurrency(realm.where(mCurrency.class).equalTo("name", item[2]).findFirst());
+                            else ma.setCurrency(realm.where(mCurrency.class).findFirst());
                         ma.setOrder(s);
                         realm.beginTransaction();
                         realm.copyToRealm(ma);
@@ -114,18 +135,34 @@ public class ImportDialogfragment extends DialogFragment {
                 }
                 if (csvT.exists()) {
                     bufferedReader = new BufferedReader(new FileReader(csvT));
-                    while ((line = bufferedReader.readLine()) != null) {
-                        String[] item = line.split("\t");
-                        mTra ts = new mTra();
-                        //ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[3]), sdf.parse(item[0]), item[5]);
-                        ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[3]), sdf.parse(item[0]));
-                        if (item.length == 6)
-                            ts.setmNote(item[5]);
-                        else
-                            ts.setmNote("");
-                        realm.beginTransaction();
-                        realm.copyToRealm(ts);
-                        realm.commitTransaction();
+                    if (!isSimple) {
+                        while ((line = bufferedReader.readLine()) != null) {
+                            String[] item = line.split("\t");
+                            mTra ts = new mTra();
+                            //ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[3]), sdf.parse(item[0]), item[5]);
+                            ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[3]), sdf.parse(item[0]));
+                            if (item.length == 6)
+                                ts.setmNote(item[5]);
+                            else
+                                ts.setmNote("");
+                            realm.beginTransaction();
+                            realm.copyToRealm(ts);
+                            realm.commitTransaction();
+                        }
+                    } else {
+                        while ((line = bufferedReader.readLine()) != null) {
+                            String[] item = line.split("\t");
+                            mTra ts = new mTra();
+                            //ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[3]), sdf.parse(item[0]), item[5]);
+                            ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[5]), sdf.parse(item[0]));
+                            if (item.length == 6)
+                                ts.setmNote(item[5]);
+                            else
+                                ts.setmNote("");
+                            realm.beginTransaction();
+                            realm.copyToRealm(ts);
+                            realm.commitTransaction();
+                        }
                     }
                     csvT.delete();
                 }
