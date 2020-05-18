@@ -4,13 +4,17 @@ import android.content.Context;
 
 import com.xvzan.bettermoneytracker.R;
 import com.xvzan.bettermoneytracker.dbsettings.mAccount;
+import com.xvzan.bettermoneytracker.dbsettings.mCurrency;
 import com.xvzan.bettermoneytracker.dbsettings.mTra;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
+import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
 import io.realm.Sort;
 
@@ -57,14 +61,16 @@ public class B2_Calc {
 
     class slPair {
         String string;
+        String numString;
         Long aLong;
         boolean noLong = false;
         boolean isTotal = false;
 
-        slPair(String s, Long l, boolean bool) {
+        slPair(String s, Long l, boolean bool, String ns) {
             string = s;
             aLong = l;
             isTotal = bool;
+            numString = ns;
         }
 
         slPair(String s) {
@@ -80,43 +86,49 @@ public class B2_Calc {
                 pairs.add(new slPair("No Data"));
                 return;
             }
-            Long sumEquity = 0L;
-            for (int i = 0; i < 2; i++) {
-                pairs.add(new slPair(accountTypes[i]));
-                Long sumsum = 0L;
-                for (mAccount account : realm.where(mAccount.class).equalTo("acct", i).findAllAsync().sort("order", Sort.ASCENDING)) {
-                    String name = account.getAname();
-                    Long sumlong = realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accU.aname", name).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accB.aname", name).findAllAsync().sum("bAm").longValue();
-                    sumsum += sumlong;
-                    pairs.add(new slPair(name, sumlong, false));
+            OrderedRealmCollection<mCurrency> currencies = realm.where(mCurrency.class).findAll().sort("order", Sort.ASCENDING);
+            for (mCurrency currency : currencies) {
+                pairs.add(new slPair("          " + currency.getName()));
+                NumberFormat format = new DecimalFormat(currency.getPattern());
+                Long sumEquity = 0L;
+                for (int i = 0; i < 2; i++) {
+                    pairs.add(new slPair(accountTypes[i]));
+                    Long sumsum = 0L;
+                    for (mAccount account : realm.where(mAccount.class).equalTo("acct", i).equalTo("currency.order", currency.getOrder()).findAllAsync().sort("order", Sort.ASCENDING)) {
+                        String name = account.getAname();
+                        Long sumlong = realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accU.aname", name).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accB.aname", name).findAllAsync().sum("bAm").longValue();
+                        sumsum += sumlong;
+                        pairs.add(new slPair(name, sumlong, false, format.format(sumlong / Math.pow(10d, currency.getFractionalDigits()))));
+                    }
+                    pairs.add(new slPair(parent.getResources().getString(R.string.total_) + accountTypes[i], sumsum, true, format.format(sumsum / Math.pow(10d, currency.getFractionalDigits()))));
+                    if (i == 0)
+                        sumEquity += sumsum;
+                    else
+                        sumEquity -= sumsum;
+                    pairs.add(new slPair(""));
                 }
-                pairs.add(new slPair(parent.getResources().getString(R.string.total_) + accountTypes[i], sumsum, true));
-                if (i == 0)
-                    sumEquity += sumsum;
-                else
-                    sumEquity -= sumsum;
+                pairs.add(new slPair("Equity", sumEquity, true, format.format(sumEquity / Math.pow(10d, currency.getFractionalDigits()))));
                 pairs.add(new slPair(""));
-            }
-            pairs.add(new slPair("Equity", sumEquity, true));
-            pairs.add(new slPair(""));
-            sumEquity = 0L;
-            for (int i = 2; i < 4; i++) {
-                pairs.add(new slPair(accountTypes[i]));
-                Long sumsum = 0L;
-                for (mAccount account : realm.where(mAccount.class).equalTo("acct", i).findAllAsync().sort("order", Sort.ASCENDING)) {
-                    String name = account.getAname();
-                    Long sumlong = realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accU.aname", name).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accB.aname", name).findAllAsync().sum("bAm").longValue();
-                    sumsum += sumlong;
-                    pairs.add(new slPair(name, sumlong, false));
+                sumEquity = 0L;
+                for (int i = 2; i < 4; i++) {
+                    pairs.add(new slPair(accountTypes[i]));
+                    Long sumsum = 0L;
+                    for (mAccount account : realm.where(mAccount.class).equalTo("acct", i).findAllAsync().sort("order", Sort.ASCENDING)) {
+                        String name = account.getAname();
+                        Long sumlong = realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accU.aname", name).equalTo("accB.currency.order", currency.getOrder()).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accB.aname", name).equalTo("accU.currency.order", currency.getOrder()).findAllAsync().sum("bAm").longValue();
+                        sumsum += sumlong;
+                        pairs.add(new slPair(name, sumlong, false, format.format(sumlong / Math.pow(10d, currency.getFractionalDigits()))));
+                    }
+                    pairs.add(new slPair(parent.getResources().getString(R.string.total_) + accountTypes[i], sumsum, true, format.format(sumsum / Math.pow(10d, currency.getFractionalDigits()))));
+                    if (i == 2)
+                        sumEquity += sumsum;
+                    else
+                        sumEquity -= sumsum;
+                    pairs.add(new slPair(""));
                 }
-                pairs.add(new slPair(parent.getResources().getString(R.string.total_) + accountTypes[i], sumsum, true));
-                if (i == 2)
-                    sumEquity += sumsum;
-                else
-                    sumEquity -= sumsum;
-                pairs.add(new slPair(""));
+                pairs.add(new slPair(parent.getResources().getString(R.string.surplus), sumEquity, true, format.format(sumEquity / Math.pow(10d, currency.getFractionalDigits()))));
+                pairs.add(new slPair("--------------------------------------------"));
             }
-            pairs.add(new slPair(parent.getResources().getString(R.string.surplus), sumEquity, true));
         }
     }
 }

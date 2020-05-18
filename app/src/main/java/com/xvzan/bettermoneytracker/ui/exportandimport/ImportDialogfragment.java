@@ -155,8 +155,8 @@ public class ImportDialogfragment extends DialogFragment {
                             mTra ts = new mTra();
                             //ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[3]), sdf.parse(item[0]), item[5]);
                             ts.directSet(realm.where(mAccount.class).equalTo("aname", item[2]).findFirst(), realm.where(mAccount.class).equalTo("aname", item[1]).findFirst(), Long.parseLong(item[4]), Long.parseLong(item[5]), sdf.parse(item[0]));
-                            if (item.length == 6)
-                                ts.setmNote(item[5]);
+                            if (item.length == 7)
+                                ts.setmNote(item[6]);
                             else
                                 ts.setmNote("");
                             realm.beginTransaction();

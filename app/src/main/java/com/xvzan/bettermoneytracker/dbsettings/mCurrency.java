@@ -35,4 +35,8 @@ public class mCurrency extends RealmObject {
     public int getFractionalDigits() {
         return fDigits;
     }
+
+    public int getOrder() {
+        return order;
+    }
 }

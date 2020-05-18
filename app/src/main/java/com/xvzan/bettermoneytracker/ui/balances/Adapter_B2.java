@@ -17,15 +17,11 @@ import java.util.Locale;
 
 public class Adapter_B2 extends RecyclerView.Adapter<Adapter_B2.B2_Holder> {
 
-    B2_Calc b2_calc;
-    private NumberFormat numberFormat;
-    private double d_Double;
+    private B2_Calc b2_calc;
 
     @NonNull
     @Override
     public B2_Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        d_Double = Math.pow(10d, (double) Currency.getInstance(Locale.getDefault()).getDefaultFractionDigits());
-        numberFormat = NumberFormat.getCurrencyInstance();
         return new B2_Holder(LayoutInflater.from(parent.getContext()).inflate(R.layout.balances_2, parent, false));
     }
 
@@ -43,7 +39,7 @@ public class Adapter_B2 extends RecyclerView.Adapter<Adapter_B2.B2_Holder> {
                 holder.tvSum.setTextColor(Color.RED);
             else
                 holder.tvSum.setTextColor(holder.tvName.getTextColors());
-            holder.tvSum.setText(numberFormat.format(b2_calc.pairs.get(position).aLong / d_Double));
+            holder.tvSum.setText(b2_calc.pairs.get(position).numString);
         }
     }
 
