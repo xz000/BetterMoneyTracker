@@ -113,6 +113,10 @@ public class mPlanTask extends RealmObject {
         isActive = true;
     }
 
+    public boolean getActive() {
+        return isActive;
+    }
+
     public void setDisable() {
         isActive = false;
     }

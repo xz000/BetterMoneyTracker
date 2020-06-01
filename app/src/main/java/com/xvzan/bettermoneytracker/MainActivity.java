@@ -190,6 +190,9 @@ public class MainActivity extends AppCompatActivity implements AddAccountDialogF
             case R.id.action_currencies:
                 startActivity(new Intent(this, CurrenciesAcvitity.class));
                 return true;
+            case R.id.action_plantasks:
+                startActivity(new Intent(this, PlanTasksActivity.class));
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

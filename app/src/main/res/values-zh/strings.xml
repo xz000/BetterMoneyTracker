@@ -48,4 +48,5 @@
     <string name="reverse">Reverse</string>
     <string name="end_date">End Date</string>
     <string name="apply_changes_to">Apply Changes to</string>
+    <string name="planned_tasks">计划的交易</string>
 </resources>

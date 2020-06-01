@@ -17,4 +17,9 @@
         android:orderInCategory="110"
         android:title="@string/currencies"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_plantasks"
+        android:orderInCategory="110"
+        android:title="@string/planned_tasks"
+        app:showAsAction="never" />
 </menu>
