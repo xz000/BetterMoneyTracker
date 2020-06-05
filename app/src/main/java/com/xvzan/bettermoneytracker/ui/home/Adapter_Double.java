@@ -2,6 +2,7 @@ package com.xvzan.bettermoneytracker.ui.home;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.icu.util.Currency;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,6 +67,10 @@ public class Adapter_Double extends RecyclerView.Adapter<Adapter_Double.DoubleTr
             holder.tdUAM.setTextColor(Color.RED);
         else
             holder.tdUAM.setTextColor(holder.tdDate.getTextColors());
+        if (mTraList.get(position).hasTask())
+            holder.tdDate.setBackgroundTintMode(PorterDuff.Mode.DST);
+        else
+            holder.tdDate.setBackgroundTintMode(PorterDuff.Mode.SRC);
         holder.tdEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
