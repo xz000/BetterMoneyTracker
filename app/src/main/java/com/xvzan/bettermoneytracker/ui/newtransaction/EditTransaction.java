@@ -245,6 +245,15 @@ public class EditTransaction extends Fragment {
         dt = root.findViewById(R.id.bt_nt_Date);
         tm = root.findViewById(R.id.bt_nt_Time);
         note = root.findViewById(R.id.et_nt_note);
+        note.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
+                    InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+        });
         if (isEdit) {
             cld.setTime(myTran.getmDate());
             aUBefore = nameList.indexOf(myTran.getAccU().getAname());
