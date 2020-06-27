@@ -424,7 +424,12 @@ public class EditTransaction extends Fragment {
                     return;
                 }
                 writeTransaction(aU.getSelectedItemPosition(), aB.getSelectedItemPosition(), uamint, bamint, tNote);
-                Navigation.findNavController(root).navigateUp();
+                if (isEdit)
+                    Navigation.findNavController(root).navigateUp();
+                else {
+                    Navigation.findNavController(root).navigate(R.id.nav_empty);
+                    Navigation.findNavController(root).navigate(R.id.action_nav_empty_to_nav_home);
+                }
             }
         });
         ImageButton bt_Delete = root.findViewById(R.id.ib_nt_delete);
