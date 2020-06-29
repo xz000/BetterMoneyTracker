@@ -27,9 +27,14 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <include
-            android:id="@+id/include"
-            layout="@layout/new_transaction_dialog" />
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment"
+            android:name="com.xvzan.bettermoneytracker.ui.newtransaction.EditTransaction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
     </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>
