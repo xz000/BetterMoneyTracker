@@ -150,7 +150,7 @@ public class PlanTaskDialogFragment extends DialogFragment {
         bt_date_picker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatePickerDialog dpd = new DatePickerDialog(Objects.requireNonNull(getContext()));
+                DatePickerDialog dpd = new DatePickerDialog(requireContext());
                 dpd.getDatePicker().init(cld.get(Calendar.YEAR), cld.get(Calendar.MONTH), cld.get(Calendar.DAY_OF_MONTH), new DatePicker.OnDateChangedListener() {
                     @Override
                     public void onDateChanged(DatePicker datePicker, int i, int i1, int i2) {

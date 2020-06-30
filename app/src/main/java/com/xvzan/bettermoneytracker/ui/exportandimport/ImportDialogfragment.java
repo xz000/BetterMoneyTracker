@@ -47,7 +47,7 @@ public class ImportDialogfragment extends DialogFragment {
         TextView tva = view.findViewById(R.id.tv_import_acc);
         TextView tvt = view.findViewById(R.id.tv_import_trans);
         Button bti = view.findViewById(R.id.bt_import);
-        csvC = new File(Objects.requireNonNull(getContext()).getExternalFilesDir(null), "import" + File.separator + "currencies");
+        csvC = new File(requireContext().getExternalFilesDir(null), "import" + File.separator + "currencies");
         csvA = new File(getContext().getExternalFilesDir(null), "import" + File.separator + "accounts");
         csvT = new File(getContext().getExternalFilesDir(null), "import" + File.separator + "transactions");
         if (csvC.exists()) {

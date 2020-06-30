@@ -46,7 +46,7 @@ public class HomeFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
         realmInstance = Realm.getDefaultInstance();
         layt = root.findViewById(R.id.traRV);
-        accstr = getContext().getSharedPreferences("data", Context.MODE_PRIVATE).getString("nowAccount", "");
+        accstr = requireContext().getSharedPreferences("data", Context.MODE_PRIVATE).getString("nowAccount", "");
         TotalManager.cancelAll();
         homeProgress = root.findViewById(R.id.homeProgress);
         if (accstr.equals(""))
@@ -62,7 +62,7 @@ public class HomeFragment extends Fragment {
 
     private void showCat() {
         homeProgress.setVisibility(View.VISIBLE);
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(accstr);
+        ((AppCompatActivity) requireActivity()).getSupportActionBar().setTitle(accstr);
         layt.setLayoutManager(new LinearLayoutManager(getContext()));
         int accOrder;
         accOrder = realmInstance.where(mAccount.class).equalTo("aname", accstr).findFirst().getOrder();
@@ -75,9 +75,9 @@ public class HomeFragment extends Fragment {
     }
 
     private void showAll() {
-        ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(R.string.all_transactions);
+        ((AppCompatActivity) requireActivity()).getSupportActionBar().setTitle(R.string.all_transactions);
         layt.setLayoutManager(new LinearLayoutManager(getContext()));
-        Adapter_Double adapter_double = new Adapter_Double(getActivity(), realmInstance);
+        Adapter_Double adapter_double = new Adapter_Double(requireActivity(), realmInstance);
         layt.setAdapter(adapter_double);
         homeProgress.setVisibility(View.INVISIBLE);
         layt.scrollToPosition(adapter_double.getItemCount() - 1);

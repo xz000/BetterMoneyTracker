@@ -12,7 +12,7 @@ public class TotalArray implements Runnable {
 
     //private String accstr;
     private int accOrder;
-    private Realm realmInstance;
+    //private Realm realmInstance;
     private Thread mCurrentThread;
     //private Adapter_Single adapter_single;
     private int size;
