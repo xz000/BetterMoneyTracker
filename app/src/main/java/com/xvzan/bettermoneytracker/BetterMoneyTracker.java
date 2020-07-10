@@ -8,18 +8,28 @@ import com.xvzan.bettermoneytracker.dbsettings.mTra;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Objects;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.sync.SyncConfiguration;
 
 public class BetterMoneyTracker extends Application {
+    public App CloudSyncApp;
+    public RealmConfiguration config;
+
     @Override
     public void onCreate() {
         super.onCreate();
         Realm.init(this);
-        RealmConfiguration config = new RealmConfiguration.Builder().name("bmt.realm").build();
-        loopPlannedTasks();
+        config = new RealmConfiguration.Builder().name(BuildConfig.MONGODB_REALM_APP_ID).build();
+        CloudSyncApp = new App(new AppConfiguration.Builder(BuildConfig.MONGODB_REALM_APP_ID).build());
+        String partitionValue = "myPartition";
+        //SyncConfiguration syncConfiguration = new SyncConfiguration.Builder(Objects.requireNonNull(CloudSyncApp.currentUser()), partitionValue).build();
+        //loopPlannedTasks();
     }
 
     public void loopPlannedTasks() {

@@ -22,6 +22,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,7 +31,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.Sort;
+import io.realm.mongodb.User;
+import io.realm.mongodb.sync.SyncConfiguration;
 
 public class MainActivity extends AppCompatActivity implements AddAccountDialogFragment.addAccountListener {
 
@@ -42,7 +46,13 @@ public class MainActivity extends AppCompatActivity implements AddAccountDialogF
     List<MenuItem> addItems;
     SharedPreferences sharedPref;
     SharedPreferences.Editor spEditor;
-    boolean noEquity;
+    public User user;
+    //boolean noEquity;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,13 +76,20 @@ public class MainActivity extends AppCompatActivity implements AddAccountDialogF
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.nav_home, R.id.nav_share)
-                .setDrawerLayout(drawer)
+                .setOpenableLayout(drawer)
                 .build();
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
         sharedPref = getSharedPreferences("data", Context.MODE_PRIVATE);
         spEditor = sharedPref.edit();
+        user = ((BetterMoneyTracker) getApplication()).CloudSyncApp.currentUser();
+        if (user == null) {
+            navController.navigate(R.id.nav_empty);
+        } else {
+            RealmConfiguration config = new SyncConfiguration.Builder(user, "cmt").waitForInitialRemoteData().build();
+            Realm.setDefaultConfiguration(config);
+        }
         reItems();
     }
 
@@ -94,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements AddAccountDialogF
         addItems.add(menuItem);
         try (final Realm realm = Realm.getDefaultInstance()) {
             if (realm.where(mAccount.class).findAll().size() == 0) {
-                noEquity = true;
+                //noEquity = true;
                 return;
             }
             for (mAccount ma : realm.where(mAccount.class).findAll().sort("order", Sort.ASCENDING)) {

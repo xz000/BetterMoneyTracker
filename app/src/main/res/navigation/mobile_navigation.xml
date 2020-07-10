@@ -14,7 +14,7 @@
     <fragment
         android:id="@+id/nav_empty"
         android:name="com.xvzan.bettermoneytracker.ui.home.EmptyFragment"
-        tools:layout="@layout/empty_layout" >
+        tools:layout="@layout/fragment_empty" >
         <action
             android:id="@+id/action_nav_empty_to_nav_home"
             app:destination="@id/nav_home"

@@ -90,13 +90,13 @@ public class B2_Calc {
             for (mCurrency currency : currencies) {
                 pairs.add(new slPair("          " + currency.getName()));
                 NumberFormat format = new DecimalFormat(currency.getPattern());
-                Long sumEquity = 0L;
+                long sumEquity = 0L;
                 for (int i = 0; i < 2; i++) {
                     pairs.add(new slPair(accountTypes[i]));
-                    Long sumsum = 0L;
+                    long sumsum = 0L;
                     for (mAccount account : realm.where(mAccount.class).equalTo("acct", i).equalTo("currency.order", currency.getOrder()).findAllAsync().sort("order", Sort.ASCENDING)) {
                         String name = account.getAname();
-                        Long sumlong = realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accU.aname", name).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accB.aname", name).findAllAsync().sum("bAm").longValue();
+                        long sumlong = realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accU.aname", name).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).lessThanOrEqualTo("mDate", endDate).equalTo("accB.aname", name).findAllAsync().sum("bAm").longValue();
                         sumsum += sumlong;
                         pairs.add(new slPair(name, sumlong, false, format.format(sumlong / Math.pow(10d, currency.getFractionalDigits()))));
                     }
@@ -112,10 +112,10 @@ public class B2_Calc {
                 sumEquity = 0L;
                 for (int i = 2; i < 4; i++) {
                     pairs.add(new slPair(accountTypes[i]));
-                    Long sumsum = 0L;
+                    long sumsum = 0L;
                     for (mAccount account : realm.where(mAccount.class).equalTo("acct", i).findAllAsync().sort("order", Sort.ASCENDING)) {
                         String name = account.getAname();
-                        Long sumlong = realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accU.aname", name).equalTo("accB.currency.order", currency.getOrder()).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accB.aname", name).equalTo("accU.currency.order", currency.getOrder()).findAllAsync().sum("bAm").longValue();
+                        long sumlong = realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accU.aname", name).equalTo("accB.currency.order", currency.getOrder()).findAllAsync().sum("uAm").longValue() + realm.where(mTra.class).between("mDate", startDate, endDate).equalTo("accB.aname", name).equalTo("accU.currency.order", currency.getOrder()).findAllAsync().sum("bAm").longValue();
                         sumsum += sumlong;
                         pairs.add(new slPair(name, sumlong, false, format.format(sumlong / Math.pow(10d, currency.getFractionalDigits()))));
                     }

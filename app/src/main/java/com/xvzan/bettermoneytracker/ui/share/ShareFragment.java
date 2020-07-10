@@ -60,7 +60,7 @@ public class ShareFragment extends Fragment implements StartDragListener {
             @Override
             public void onClick(View v) {
                 AddAccountDialogFragment adf = new AddAccountDialogFragment(la);
-                adf.show(getActivity().getSupportFragmentManager(), "add_account_dialog");
+                adf.show(requireActivity().getSupportFragmentManager(), "add_account_dialog");
             }
         });
         return root;

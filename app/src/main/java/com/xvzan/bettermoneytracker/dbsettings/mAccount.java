@@ -1,8 +1,14 @@
 package com.xvzan.bettermoneytracker.dbsettings;
 
+import org.bson.types.ObjectId;
+
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class mAccount extends RealmObject {
+    @PrimaryKey
+    private ObjectId _id = new ObjectId();
+
     private boolean editme;
     private int acct;
     private boolean bl1;

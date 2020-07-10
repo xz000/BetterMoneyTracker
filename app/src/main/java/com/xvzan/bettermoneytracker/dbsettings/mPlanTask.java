@@ -1,10 +1,16 @@
 package com.xvzan.bettermoneytracker.dbsettings;
 
+import org.bson.types.ObjectId;
+
 import java.util.Date;
 
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class mPlanTask extends RealmObject {
+    @PrimaryKey
+    private ObjectId _id = new ObjectId();
+
     private boolean isActive;
     private mAccount accU;
     private mAccount accB;

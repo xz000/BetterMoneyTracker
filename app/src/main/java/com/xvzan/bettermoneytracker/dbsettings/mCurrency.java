@@ -1,8 +1,14 @@
 package com.xvzan.bettermoneytracker.dbsettings;
 
+import org.bson.types.ObjectId;
+
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 public class mCurrency extends RealmObject {
+    @PrimaryKey
+    private ObjectId _id = new ObjectId();
+
     private String symbol;
     private String name;
     private String pattern;

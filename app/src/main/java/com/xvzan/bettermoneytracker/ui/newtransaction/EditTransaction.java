@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 import io.realm.OrderedRealmCollection;
 import io.realm.Realm;
@@ -134,7 +133,7 @@ public class EditTransaction extends Fragment {
             nameList.add(ma.getAname());
             typeList.add(ma.getAcct());
         }
-        ArrayAdapter<String> maaa = new ArrayAdapter<>(Objects.requireNonNull(getContext()), R.layout.support_simple_spinner_dropdown_item, nameList);
+        ArrayAdapter<String> maaa = new ArrayAdapter<>(requireContext(), R.layout.support_simple_spinner_dropdown_item, nameList);
         aU.setAdapter(maaa);
         aB.setAdapter(maaa);
         AdapterView.OnItemSelectedListener spln = new AdapterView.OnItemSelectedListener() {
@@ -226,18 +225,17 @@ public class EditTransaction extends Fragment {
                 }
             }
         });
-        InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         assert imm != null;
         imm.showSoftInput(root, InputMethodManager.SHOW_IMPLICIT);
         bam.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                InputMethodManager im = (InputMethodManager) Objects.requireNonNull(getContext()).getSystemService(Context.INPUT_METHOD_SERVICE);
+                InputMethodManager im = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                assert im != null;
                 if (hasFocus) {
-                    assert im != null;
                     im.showSoftInput(v, InputMethodManager.SHOW_IMPLICIT);
                 } else {
-                    assert im != null;
                     im.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 }
             }
@@ -249,7 +247,7 @@ public class EditTransaction extends Fragment {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (!hasFocus) {
-                    InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 }
             }
@@ -269,7 +267,8 @@ public class EditTransaction extends Fragment {
             dateBefore = myTran.getmDate();
             //setInputFields();
         } else {
-            final String accstr = getContext().getSharedPreferences("data", Context.MODE_PRIVATE).getString("nowAccount", "");
+            final String accstr = requireContext().getSharedPreferences("data", Context.MODE_PRIVATE).getString("nowAccount", "");
+            assert accstr != null;
             if (!accstr.equals("") && nameList.contains(accstr)) {
                 int mmm = nameList.indexOf(accstr);
                 if (accList.get(mmm - 1).getBl1())
@@ -287,7 +286,7 @@ public class EditTransaction extends Fragment {
         dt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatePickerDialog dpd = new DatePickerDialog(Objects.requireNonNull(getContext()));
+                DatePickerDialog dpd = new DatePickerDialog(requireContext());
                 dpd.getDatePicker().init(cld.get(Calendar.YEAR), cld.get(Calendar.MONTH), cld.get(Calendar.DAY_OF_MONTH), new DatePicker.OnDateChangedListener() {
                     @Override
                     public void onDateChanged(DatePicker datePicker, int i, int i1, int i2) {
@@ -427,8 +426,12 @@ public class EditTransaction extends Fragment {
                 if (isEdit)
                     Navigation.findNavController(root).navigateUp();
                 else {
-                    Navigation.findNavController(root).navigate(R.id.nav_empty);
-                    Navigation.findNavController(root).navigate(R.id.action_nav_empty_to_nav_home);
+                    try {
+                        Navigation.findNavController(root).navigate(R.id.nav_empty);
+                        Navigation.findNavController(root).navigate(R.id.action_nav_empty_to_nav_home);
+                    } catch (IllegalStateException e) {
+                        requireActivity().finish();
+                    }
                 }
             }
         });
@@ -539,11 +542,11 @@ public class EditTransaction extends Fragment {
                     if (endDate != null)
                         planTaskDialogFragment.setOldEndDate(endDate);
                 }
-                planTaskDialogFragment.show(Objects.requireNonNull(getActivity()).getSupportFragmentManager(), "edit_repeat_dialog");
+                planTaskDialogFragment.show(requireActivity().getSupportFragmentManager(), "edit_repeat_dialog");
             }
         });
         if (isEdit && myTran.hasTask())
-            repeatButton.setImageTintList(getContext().getResources().getColorStateList(R.color.repeating, getContext().getTheme()));
+            repeatButton.setImageTintList(requireContext().getResources().getColorStateList(R.color.repeating, requireContext().getTheme()));
         return root;
     }
 
@@ -571,7 +574,7 @@ public class EditTransaction extends Fragment {
                         f = cld.get(Calendar.DAY_OF_MONTH);
                     planTask.setFeature(f);
                 }
-                planTask.setNextTime(((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
+                planTask.setNextTime(((BetterMoneyTracker) (requireActivity().getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
                 planTask.setActive();
                 myTran.setPlanTask(planTask);
             }
@@ -596,7 +599,7 @@ public class EditTransaction extends Fragment {
                         f = cld.get(Calendar.DAY_OF_MONTH);
                     planTask.setFeature(f);
                 }
-                planTask.setNextTime(((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
+                planTask.setNextTime(((BetterMoneyTracker) (requireActivity().getApplication())).calculateNextTime(loopMode, repeatInt, f, cld.getTime()));
                 planTask.setActive();
                 ts.setPlanTask(planTask);
             }
@@ -605,7 +608,7 @@ public class EditTransaction extends Fragment {
         }
         realm.commitTransaction();
         if (loopMode != 0)
-            ((BetterMoneyTracker) (Objects.requireNonNull(getActivity()).getApplication())).loopPlannedTasks();
+            ((BetterMoneyTracker) (requireActivity().getApplication())).loopPlannedTasks();
     }
 
     @Override
@@ -692,9 +695,9 @@ public class EditTransaction extends Fragment {
     public void setRepeatMode(int mode) {
         loopMode = mode;
         if (mode == 0)
-            repeatButton.setImageTintList(Objects.requireNonNull(getContext()).getResources().getColorStateList(R.color.norepeating, getContext().getTheme()));
+            repeatButton.setImageTintList(requireContext().getResources().getColorStateList(R.color.norepeating, requireContext().getTheme()));
         else
-            repeatButton.setImageTintList(Objects.requireNonNull(getContext()).getResources().getColorStateList(R.color.repeating, getContext().getTheme()));
+            repeatButton.setImageTintList(requireContext().getResources().getColorStateList(R.color.repeating, requireContext().getTheme()));
     }
 
     public void setMonthReverse(boolean monthReverse) {
