@@ -77,7 +77,7 @@ public class HomeFragment extends Fragment {
     private void showAll() {
         ((AppCompatActivity) requireActivity()).getSupportActionBar().setTitle(R.string.all_transactions);
         layt.setLayoutManager(new LinearLayoutManager(getContext()));
-        Adapter_Double adapter_double = new Adapter_Double(getActivity(), realmInstance);
+        Adapter_Double adapter_double = new Adapter_Double(requireActivity(), realmInstance);
         layt.setAdapter(adapter_double);
         homeProgress.setVisibility(View.INVISIBLE);
         layt.scrollToPosition(adapter_double.getItemCount() - 1);
